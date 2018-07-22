@@ -27,6 +27,8 @@ class Ship {
     ctx.shadowBlur = 20;
     ctx.shadowColor = "white";
 
+    ctx.rotate(this.deg);
+
     ctx.beginPath();
     ctx.arc(0, 0, this.r, 0, Math.PI * 2);
     ctx.strokeStyle = "white";
@@ -50,27 +52,51 @@ class Ship {
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.rotate(this.deg + Math.PI);
-    ctx.arc(0, 0, this.r + 100, -Math.PI / 4 + this.deg, Math.PI / 4 + this.deg);
+    ctx.fillStyle = "white";
+    ctx.fillRect(this.r + 20, -50 / 2, 50, 50);
+
+    ctx.beginPath();
+    ctx.moveTo(this.r + 70, -25);
+    ctx.lineTo(this.r + 70, 25);
+    ctx.lineTo(this.r + 120, 15);
+    ctx.lineTo(this.r + 120, -15);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, this.r + 100, -Math.PI / 4 + 600, Math.PI / 4 + 600);
     ctx.setLineDash([]);
     ctx.lineWidth = 5;
     ctx.stroke();
 
+    ctx.restore();
+  }
+}
 
-    ctx.beginPath();
-    ctx.rotate(this.deg + Math.PI);
+class Bullet {
+  constructor(args) {
+    let def = {
+      x: 0,
+      y: 0,
+      v: {
+        x: 0,
+        y: 0
+      }
+    };
+    Object.assign(def, args);
+    Object.assign(this, def);
+  }
+
+  update() {
+    this.x += this.v.x;
+    this.y += this.v.y;
+  }
+
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
     ctx.fillStyle = "white";
-    ctx.fillRect(this.deg + 90, -50 / 2, 50, 50);
-
-    ctx.beginPath();
-    ctx.moveTo(this.deg + 140, -25);
-    ctx.lineTo(this.deg + 140, 25);
-    ctx.lineTo(this.deg + 190, 15);
-    ctx.lineTo(this.deg + 190, -15);
-    ctx.closePath();
-    ctx.fill();
-
-
+    ctx.fillRect(0, 0, 10, 10);
     ctx.restore();
   }
 }
@@ -83,8 +109,25 @@ function init() {
   });
 }
 
+var time = 0;
+var bullets = [];
+
 function update() {
   ship.deg = mousePos.x / 50;
+
+  time++;
+  if (time % 30 === 0) {
+    let b = new Bullet({
+      x: ww / 2 + Math.cos(ship.deg) * (ship.r + 100),
+      y: wh / 2 + Math.sin(ship.deg) * (ship.r + 100),
+      v: {
+        x: Math.cos(ship.deg) * 10,
+        y: Math.sin(ship.deg) * 10
+      }
+    });
+    bullets.push(b);
+  }
+  bullets.forEach(b => b.update());
 
   // if (time%100===0) {
   //   TweenMax.to(ship, 1, {
@@ -119,6 +162,8 @@ function draw() {
   ctx.translate(ww / 2, wh / 2);
   ship.draw();
   ctx.restore();
+
+  bullets.forEach(b => b.draw());
 
   requestAnimationFrame(draw);
 }
